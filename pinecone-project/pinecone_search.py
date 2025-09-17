@@ -9,7 +9,7 @@ def search_pinecone(query, top_k=10):
     load_dotenv()
 
     pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-    index = pc.Index("semantic-search-demo")
+    index = pc.Index("multimodal-search-v2")
     model = SentenceTransformer(os.getenv("TRANSFORMER_MODEL"))
     namespace = "__default__"
     # Encode and search
@@ -19,7 +19,7 @@ def search_pinecone(query, top_k=10):
         namespace=namespace,
         vector=query_embedding.tolist(),
         top_k=top_k,
-        include_metadata=True
+        include_metadata=True,
     )
 
     return results

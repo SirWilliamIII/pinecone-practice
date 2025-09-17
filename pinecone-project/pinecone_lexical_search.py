@@ -12,7 +12,7 @@ def lexical_search(query, top_k=10):
     load_dotenv()
 
     pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-    index = pc.Index("semantic-search-demo")
+    index = pc.Index("multimodal-search-v2")
     namespace = "__default__"
 
     # For demonstration, we'll create a simple sparse vector
@@ -47,22 +47,22 @@ def lexical_search(query, top_k=10):
         # or hybrid search (dense + sparse)
         results = index.query(
             namespace=namespace,
-            sparse_vector={
-                "indices": sparse_indices,
-                "values": sparse_values
-            },
+            sparse_vector={"indices": sparse_indices, "values": sparse_values},
             top_k=top_k,
-            include_metadata=True
+            include_metadata=True,
         )
         return results
     except Exception as e:
-        print(f"Note: Sparse vector search requires index configuration for sparse vectors.")
+        print(
+            f"Note: Sparse vector search requires index configuration for sparse vectors."
+        )
         print(f"Error: {e}")
         print("\nFalling back to metadata text search as alternative...")
 
         # Alternative: Use metadata filtering for keyword search
         # This searches for keywords in metadata fields
         from sentence_transformers import SentenceTransformer
+
         model = SentenceTransformer(os.getenv("TRANSFORMER_MODEL"))
 
         # Create a dummy embedding for the query structure
@@ -95,13 +95,13 @@ if __name__ == "__main__":
     print(f"Lexical/Keyword Search Results for: '{query}'")
     print("-" * 50)
 
-    if hasattr(results, 'matches') and results.matches:
+    if hasattr(results, "matches") and results.matches:
         for i, match in enumerate(results.matches, 1):
             print(f"\n{i}. Score: {match.score:.4f}")
             print(f"   ID: {match.id}")
             if match.metadata:
                 # Show first 200 chars of text if available
-                text = match.metadata.get('text', '')
+                text = match.metadata.get("text", "")
                 if text:
                     print(f"   Text: {text[:200]}...")
     else:

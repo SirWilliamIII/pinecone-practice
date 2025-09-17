@@ -13,7 +13,7 @@ def explore_metadata_values(namespace="__default__", sample_size=1000):
     load_dotenv()
 
     pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-    index = pc.Index("semantic-search-demo")
+    index = pc.Index("multimodal-search-v2")
 
     # Get index statistics
     try:
@@ -52,12 +52,12 @@ def explore_metadata_values(namespace="__default__", sample_size=1000):
                     result = index.list_paginated(
                         namespace=namespace,
                         limit=min(100, sample_size - collected_samples),
-                        pagination_token=pagination_token
+                        pagination_token=pagination_token,
                     )
                 else:
                     result = index.list_paginated(
                         namespace=namespace,
-                        limit=min(100, sample_size - collected_samples)
+                        limit=min(100, sample_size - collected_samples),
                     )
 
                 if not result.vectors:
@@ -81,13 +81,15 @@ def explore_metadata_values(namespace="__default__", sample_size=1000):
 
                             # For string values, collect unique values (up to a limit)
                             if isinstance(value, (str, int, float, bool)):
-                                if len(metadata_values[key]) < 50:  # Limit unique values stored
+                                if (
+                                    len(metadata_values[key]) < 50
+                                ):  # Limit unique values stored
                                     metadata_values[key].add(str(value))
 
                 collected_samples += len(vector_ids)
 
                 # Check for pagination
-                if hasattr(result.pagination, 'next') and result.pagination.next:
+                if hasattr(result.pagination, "next") and result.pagination.next:
                     pagination_token = result.pagination.next
                 else:
                     break
@@ -174,12 +176,11 @@ def get_specific_metadata_values(metadata_key, namespace="__default__", limit=10
                     result = index.list_paginated(
                         namespace=namespace,
                         limit=min(50, limit - processed),
-                        pagination_token=pagination_token
+                        pagination_token=pagination_token,
                     )
                 else:
                     result = index.list_paginated(
-                        namespace=namespace,
-                        limit=min(50, limit - processed)
+                        namespace=namespace, limit=min(50, limit - processed)
                     )
 
                 if not result.vectors:
@@ -196,7 +197,7 @@ def get_specific_metadata_values(metadata_key, namespace="__default__", limit=10
 
                 processed += len(vector_ids)
 
-                if hasattr(result.pagination, 'next') and result.pagination.next:
+                if hasattr(result.pagination, "next") and result.pagination.next:
                     pagination_token = result.pagination.next
                 else:
                     break
@@ -229,9 +230,10 @@ if __name__ == "__main__":
 
     # Example: Get specific values for a particular field
     # Uncomment and modify based on fields found in exploration above
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DETAILED EXPLORATION OF SPECIFIC FIELD")
-    print("="*60)
+    print("=" * 60)
 
-    # Replace 'category' with an actual field name from your metadata
-    get_specific_metadata_values('category', limit=200)
+    metadata_key = "category"
+
+    get_specific_metadata_values(metadata_key, limit=200)

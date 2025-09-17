@@ -15,8 +15,8 @@ def interactive_query_session():
     # Setup
     load_dotenv()
     api_key = os.getenv("PINECONE_API_KEY")
-    index_name = "obsidian-knowledge-base"
-    MODEL=os.getenv("TRANSFORMER")
+    index_name = "multimodal-search-v2"
+    MODEL = os.getenv("TRANSFORMER")
     # Initialize components
     print("🔄 Loading model and connecting to Pinecone...")
     model = SentenceTransformer(MODEL)
@@ -101,15 +101,13 @@ def test_predefined_queries():
     load_dotenv()
     api_key = os.getenv("PINECONE_API_KEY")
     index_name = "semantic-search-demo"
-    MODEL=os.getenv("TRANSFORMER")
+    MODEL = os.getenv("TRANSFORMER")
     model = SentenceTransformer(MODEL)
     pc = Pinecone(api_key=api_key)
     index = pc.Index(index_name)
 
     # Predefined test queries
-    test_queries = [
-        "HTTPie"
-    ]
+    test_queries = ["HTTPie"]
 
     print("\n" + "=" * 60)
     print("BATCH QUERY TESTING")
@@ -126,7 +124,6 @@ def test_predefined_queries():
             print(f"     File: {match['metadata'].get('source', 'Unknown')}")
             print(f"     Content: {match['metadata'].get('text', 'No text')[:200]}...")
             print()
-
 
         if results["matches"]:
             best_score = results["matches"][0]["score"]

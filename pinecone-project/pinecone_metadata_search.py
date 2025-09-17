@@ -13,7 +13,7 @@ def metadata_filter_search(query, metadata_filter, top_k=10):
     load_dotenv()
 
     pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-    index = pc.Index("semantic-search-demo")
+    index = pc.Index("multimodal-search-v2")
     model = SentenceTransformer(os.getenv("TRANSFORMER_MODEL"))
     namespace = "__default__"
 
@@ -26,7 +26,7 @@ def metadata_filter_search(query, metadata_filter, top_k=10):
         vector=query_embedding.tolist(),
         top_k=top_k,
         include_metadata=True,
-        filter=metadata_filter
+        filter=metadata_filter,
     )
 
     return results
@@ -40,16 +40,12 @@ if __name__ == "__main__":
     metadata_filter = {
         # Example: Filter by category
         # "category": {"$in": ["networking", "protocols", "OSI"]},
-
         # Example: Filter by date range (if you have date metadata)
         # "created_date": {"$gte": "2024-01-01", "$lte": "2025-01-31"},
-
         # Example: Filter by source
         # "source": {"$eq": "technical_docs"},
-
         # Example: Filter by tags
         # "tags": {"$in": ["network", "tcp", "udp"]},
-
         # Simple text field filter (adjust field name to match your metadata)
         # "text": {"$contains": "transport"}
     }

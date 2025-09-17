@@ -16,7 +16,7 @@ def semantic_search_with_fields(query_text, fields=None, top_k=10):
     load_dotenv()
 
     pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-    index = pc.Index("semantic-search-demo")
+    index = pc.Index("multimodal-search-v2")
     namespace = "__default__"
 
     # Use Pinecone's search method with text input

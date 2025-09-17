@@ -13,7 +13,7 @@ top_k = 10
 
 
 def search_docs():
-    index_name = "semantic-search-demo"
+    index_name = "multimodal-search-v2"
     model = SentenceTransformer(MODEL)
     pc = Pinecone(api_key=api_key)
     index = pc.Index(index_name)
@@ -35,7 +35,7 @@ def search_docs():
     # fetched = index.fetch(ids=ids)
 
     # for id, vector in fetched["vectors"].items():
-    # 	print(f"ID: {id}, Metadata: {vector['metadata']}")
+    #   print(f"ID: {id}, Metadata: {vector['metadata']}")
 
     breakpoint()
     return results
