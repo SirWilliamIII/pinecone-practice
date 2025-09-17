@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-"""
-Improved Pinecone Vector Database Manager for Obsidian Notes
-
-This module provides a robust, maintainable solution for indexing markdown documents
-in Pinecone with comprehensive error handling and performance optimizations.
-"""
-
 import os
 import time
 import logging
@@ -23,7 +15,6 @@ import numpy as np
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -37,7 +28,6 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Config:
-    """Configuration class with validation and defaults."""
     
     # Required settings
     pinecone_api_key: str
