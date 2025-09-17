@@ -7,12 +7,17 @@ This demonstrates the #1 customer integration failure.
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import json
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+MODEL=os.getenv("TRANSFORMER")
 # Simulate customer's initial setup - everything works great!
 print("=== CUSTOMER'S INITIAL SETUP (Works Fine) ===")
 
+
 # Customer starts with a small model
-model_small = SentenceTransformer('all-MiniLM-L6-v2')  # 384 dimensions
+model_small = SentenceTransformer(MODEL)# 384 dimensions
 sample_text = "This is a test document"
 
 # Generate embeddings

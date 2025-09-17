@@ -5,9 +5,12 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13.1"
 dependencies = [
+    "anthropic>=0.67.0",
     "black>=25.1.0",
     "numpy>=2.3.3",
+    "pillow>=11.3.0",
     "pinecone>=7.3.0",
+    "pypdf2>=3.0.1",
     "python-dotenv>=1.1.1",
     "sentence-transformers>=5.1.0",
     "tenacity>=9.1.2",

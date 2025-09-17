@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import time
 
 def upload_documents_to_pinecone(documents, index_name, pc):

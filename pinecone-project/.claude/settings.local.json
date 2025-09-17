@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__context7__get-library-docs",
+      "Read(//Users/will/Desktop/API-pdfs/16_23_000/**)",
+      "Bash(uv run:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

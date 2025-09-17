@@ -16,10 +16,10 @@ def interactive_query_session():
     load_dotenv()
     api_key = os.getenv("PINECONE_API_KEY")
     index_name = "obsidian-knowledge-base"
-
+    MODEL=os.getenv("TRANSFORMER")
     # Initialize components
     print("🔄 Loading model and connecting to Pinecone...")
-    model = SentenceTransformer("all-MiniLM-L6-v2")
+    model = SentenceTransformer(MODEL)
     pc = Pinecone(api_key=api_key)
     index = pc.Index(index_name)
 
@@ -101,7 +101,8 @@ def test_predefined_queries():
     load_dotenv()
     api_key = os.getenv("PINECONE_API_KEY")
     index_name = "semantic-search-demo"
-    model = SentenceTransformer("all-MiniLM-L6-v2")
+    MODEL=os.getenv("TRANSFORMER")
+    model = SentenceTransformer(MODEL)
     pc = Pinecone(api_key=api_key)
     index = pc.Index(index_name)
 
@@ -135,4 +136,4 @@ def test_predefined_queries():
 
 
 if __name__ == "__main__":
-    test_predefined_queries()
+    interactive_query_session()
